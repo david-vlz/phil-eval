@@ -38,3 +38,4 @@ nosetests.xml
 *.pyc
 test.py
 data.xls
+*.sublime*
