@@ -1,11 +1,15 @@
 #!/usr/bin/python
 # coding: utf-8
 
+from types import *
 
 class Validator:
 
 	def __init__(self, value_spaces={}, spacename_aliases={}):
 		self.value_spaces = value_spaces
+		self.value_spaces['str'] = self.is_string
+		self.value_spaces['int'] = self.is_integer
+		self.value_spaces['float'] = self.is_float
 		self.spacename_aliases = spacename_aliases
 
 	def add_value_space(self, spacename, values):
@@ -29,11 +33,24 @@ class Validator:
 
 	def validate(self, spacename, value):
 		proper_spacename = self.get_proper_spacename(spacename)
-		try:
-			return (value in self.get_value_space(proper_spacename))
-		except TypeError:
+		space = self.value_spaces.get(proper_spacename)
+		if space:
+			if isinstance(space, (FunctionType, MethodType)):
+				return space(value)
+			else:
+				return (value in self.get_value_space(proper_spacename))
+		else:
 			raise NotASpaceNameError(spacename)
-	
+
+	def is_string(self, value):
+		return isinstance(value, StringTypes)
+
+	def is_integer(self, value):
+		return isinstance(value, int)
+
+	def is_float(self, value):
+		return isinstance(value, float)
+
 
 
 class NotASpaceNameError(Exception):
