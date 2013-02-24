@@ -4,7 +4,7 @@
 import xlrd
 
 from stats import *
-from validator import *
+from validate import *
 
 # Excel-Tabellen bereithalten
 book = xlrd.open_workbook('data.xls')
