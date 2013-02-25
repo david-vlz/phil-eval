@@ -45,8 +45,22 @@ class Record:
 	def __init__(self, fields=None):
 		self.fields = fields or []
 
+	def __iter__(self):
+		for field in self.fields:
+			yield (field.column.name, field.value)
+
 	def add_field(self, field):
 		self.fields.append(field)
+
+	def iter_fields(self):
+		for field in self.fields:
+			yield (field.value, field.column)
+
+	def get_value(self, column_name):
+		for value, column in self.iter_fields():
+			if column.name == column_name:
+				return value
+
 
 """
 Definiert eine Referenz für die gesamte Tabelle
@@ -92,8 +106,6 @@ class Table:
 				col_name = _normalize_value(sheet.cell(name_row, x))
 			col = Column(x, col_id, (col_name or ""), validator)
 			self.columns.append(col);
-
-			# Datensätze anlegen
 
 			# Felder anlegen und dem entsprechenden Datensatz übergeben
 			for y in range(start_row_number, y_offset):
