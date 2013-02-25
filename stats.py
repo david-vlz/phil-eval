@@ -6,19 +6,47 @@ from xlrd import *
 """
 Eine einzelne Tabellenzeile
 
-coln: die Zeilennummer im Excel Stylesheet
+coln: die Zeilennummer im Excel sheet
 id: die interne id der Spalte, wenn vorhanden
 name: der Klarname der Spalte, wenn vorhanden
 valid_values: eine Liste mit erlaubten Werten
 """
 class Column:
 
-	def __init__(self, number, id, name="", valid_content=None):
+	def __init__(self, number, id, name="", validator=None):
 		self.number = number
 		self.id = id
 		self.name = name
-		self.valid_content = valid_content
+		if validator:
+			self.validator = validator
 
+	def validate(self, value):
+		if self.validator:
+			return validator.validate(name, value)
+		else:
+			return None
+
+"""
+Ein einzelnes Datum
+"""
+class Field:
+
+	def __init__(self, value, column=None):
+		self.value = value
+		self.column = column
+
+	def validate(self):
+		if self.column:
+			return self.column.validate(value)
+
+
+class Record:
+
+	def __init__(self, fields=None):
+		self.fields = fields or []
+
+	def add_field(self, field):
+		self.fields.append(field)
 
 """
 Definiert eine Referenz für die gesamte Tabelle
@@ -52,16 +80,43 @@ class Table:
 			y_offset = len(sheet.col(index_row))
 
 		self.columns = []
+		self.records = []
+
+		start_row_number = max(index_row, name_row) + 1
+
 		col_name = None
-		for i in range(0, x_offset):
-			col_id = normalize_value(sheet.cell(index_row, i))
+		for x in range(0, x_offset):
+			# Neue Spalten anlegen
+			col_id = _normalize_value(sheet.cell(index_row, x))
 			if (name_row):
-				col_name = normalize_value(sheet.cell(name_row, i))
-			col = Column(i, col_id, (col_name or ""))
+				col_name = _normalize_value(sheet.cell(name_row, x))
+			col = Column(x, col_id, (col_name or ""), validator)
 			self.columns.append(col);
 
-		# self.indices = map(normalize_value, sheet.row(header_idx_row))
-		# self.names = map(normalize_value, sheet.row(header_name_row))
+			# Datensätze anlegen
+
+			# Felder anlegen und dem entsprechenden Datensatz übergeben
+			for y in range(start_row_number, y_offset):
+				if x == 0:
+					self.records.append(Record())
+				# if y == start_row_number:
+				# 	print sheet.cell_value(y,x)
+				
+				field = Field(sheet.cell(y,x).value, col)
+				self.records[y-start_row_number].add_field(field)
+
+
+	def get_column_by_number(self, number):
+		if self.columns[number].coln == number:
+			return self.columns[number]
+		else:
+			for column in self.columns:
+				if column.coln == number:
+					print 'additional search'
+					return column
+
+
+
 
 
 
@@ -78,7 +133,7 @@ Argumente:
 Rückgabe:
 	der Zelleninhalt als String. Bei Floats wird .0 ggf. weggekürzt
 """
-def normalize_value(cell):
+def _normalize_value(cell):
 	cell_type = cell.ctype
 	cell_value = cell.value
 	if cell_type == XL_CELL_TEXT:
