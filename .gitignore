@@ -40,3 +40,4 @@ test.py
 data.xls
 *.sublime*
 mappings.py
+.~lock.*
