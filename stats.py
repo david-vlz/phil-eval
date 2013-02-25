@@ -22,7 +22,7 @@ class Column:
 
 	def validate(self, value):
 		if self.validator:
-			return validator.validate(name, value)
+			return self.validator.validate(self.name, value)
 		else:
 			return None
 
@@ -37,7 +37,7 @@ class Field:
 
 	def validate(self):
 		if self.column:
-			return self.column.validate(value)
+			return self.column.validate(self.value)
 
 
 class Record:
@@ -111,8 +111,6 @@ class Table:
 			for y in range(start_row_number, y_offset):
 				if x == 0:
 					self.records.append(Record())
-				# if y == start_row_number:
-				# 	print sheet.cell_value(y,x)
 				
 				field = Field(sheet.cell(y,x).value, col)
 				self.records[y-start_row_number].add_field(field)
