@@ -5,12 +5,12 @@ from types import *
 
 class Validator:
 
-	def __init__(self, value_spaces={}, spacename_aliases={}):
-		self.value_spaces = value_spaces
+	def __init__(self, value_spaces=None, spacename_aliases=None):
+		self.value_spaces = value_spaces or {}
 		self.value_spaces['str'] = self.is_string
 		self.value_spaces['int'] = self.is_integer
 		self.value_spaces['float'] = self.is_float
-		self.spacename_aliases = spacename_aliases
+		self.spacename_aliases = spacename_aliases or {}
 
 	def add_value_space(self, spacename, values):
 		self.value_spaces[spacename] = values
