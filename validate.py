@@ -7,6 +7,7 @@ class Validator:
 
 	def __init__(self, value_spaces=None, spacename_aliases=None):
 		self.value_spaces = value_spaces or {}
+		self.value_spaces[''] = self.no_validation
 		self.value_spaces['str'] = self.is_string
 		self.value_spaces['int'] = self.is_integer
 		self.value_spaces['float'] = self.is_float
@@ -41,6 +42,9 @@ class Validator:
 				return (value in self.get_value_space(proper_spacename))
 		else:
 			raise NotASpaceNameError(spacename)
+
+	def no_validation(self, value):
+		return True
 
 	def is_string(self, value):
 		return isinstance(value, StringTypes)
