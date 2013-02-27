@@ -31,8 +31,10 @@ Ein einzelnes Datum
 """
 class Field:
 
-	def __init__(self, value, column=None):
+	def __init__(self, value, x_pos, y_pos, column=None):
 		self.value = value
+		self.x = x_pos
+		self.y = y_pos
 		self.column = column
 
 	def validate(self):
@@ -55,6 +57,12 @@ class Record:
 	def iter_fields(self):
 		for field in self.fields:
 			yield (field.value, field.column)
+
+	def get_field_by_column(self, column):
+		for field in self.fields:
+			if not(cmp(field.column, column)):
+				return field
+		return None
 
 	def get_value(self, column_name):
 		for value, column in self.iter_fields():
@@ -112,22 +120,34 @@ class Table:
 				if x == 0:
 					self.records.append(Record())
 				
-				field = Field(sheet.cell(y,x).value, col)
+				field = Field(sheet.cell(y,x).value, x, y, col)
 				self.records[y-start_row_number].add_field(field)
 
+	def get_invalids_by_column(self, col_nr):
+		invalids = []
+		column = self.get_column_by_number(col_nr)
+		for record in self.records:
+			field = record.get_field_by_column(column)
+			if field.value and not(field.validate()):
+				invalids.append(field)
+		return invalids
 
 	def get_column_by_number(self, number):
-		if self.columns[number].coln == number:
+		if self.columns[number].number == number:
 			return self.columns[number]
 		else:
 			for column in self.columns:
-				if column.coln == number:
+				if column.number == number:
 					print 'additional search'
 					return column
 
 
 
-
+invalids = []
+def get_invalids(row_nr):
+	for val, y, x in invalids:
+		if x == row_nr:
+			print repr(val), y, x
 
 
 
