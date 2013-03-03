@@ -1,14 +1,65 @@
 import stats
 
+BA_STUDIES = [
+	u'Bachelor (Wissenschaftlich)',
+	u'Bachelor Lehramt Philosophie / Praktische Philosophie GyGe',
+	u'Bachelor Lehramt Praktische Philosophie HRGe'
+
+]
+
+MA_STUDIES = [
+	u'Master (Wissenschaftlich)'
+]
+
+OLD_STUDIES = [
+	u'Magister(Wissenschaftlich)',
+	u'Lehramt f\xfcr Sek I/II (LPO 1997)',
+	u'Lehramt GyGe (LPO 2003)',
+	u'Lehramt HRGe',
+	u'Sonderp\xe4dagogik',
+	u'Diplomstudiengang P\xe4dagogik'
+]
+
+TEACHING_SUBJECTS = [
+	u'Lehramt f\xfcr Sek I/II (LPO 1997)',
+	u'Lehramt GyGe (LPO 2003)',
+	u'Lehramt HRGe',
+	u'Bachelor Lehramt Philosophie / Praktische Philosophie GyGe',
+	u'Bachelor Lehramt Praktische Philosophie HRGe',
+	u'Sonderp\xe4dagogik',
+	u'Diplomstudiengang P\xe4dagogik'
+]
+
+NON_TEACHING_SUBJECTS = [
+	u'Magister(Wissenschaftlich)',
+	u'Bachelor (Wissenschaftlich)',
+	u'Master (Wissenschaftlich)'
+]
+
+
 class PhilTable(stats.Table):
 
-	def bla(self):
-		print 'blubb'
+	def bama_students(self):
+		result = []
+		for record in self.records:
+			if record.studies_bama:
+				result.append(record)
+		return result
 
+'''
+Felder:
+	.studies_bama
+	.studies_older
+	.studies_teach
+	.studies_nonteach
+'''
 
 class PhilRecord(stats.Record):
 
 	def prepare(self):
+		'''
+		Feldinhalte vorbereiten, bzw. vereinheitlichen
+		'''
 		col_names = [u'Zeit Vorbereitung Intensiv', 
 			u'Zeit Nachbereitung Intensiv',
 			u'Zeit Lesen Intensiv',
@@ -39,6 +90,30 @@ class PhilRecord(stats.Record):
 
 		field = self.get_field_by_column_name(u'Einkunft Sonstiges:')
 		self.extract_additional_value(field, 'Ja, ')
+
+		'''
+		Abstrakte Eigenschaften ermitteln
+		'''
+		self.subject = self.get_value('Studiengang')
+		if (self.subject in BA_STUDIES or self.subject in MA_STUDIES):
+			self.studies_bama = True
+			self.studies_older = False
+		elif (self.subject in OLD_STUDIES):
+			self.studies_bama = False
+			self.studies_older = True
+		else:
+			self.studies_bama = None
+			self.studies_older = None
+		if (self.subject in TEACHING_SUBJECTS):
+			self.studies_teach = True
+			self.studies_nonteach = False
+		elif (self.subject in NON_TEACHING_SUBJECTS):
+			self.studies_teach = False
+			self.studies_nonteach = True
+		else:
+			self.studies_teach = None
+			self.studies_nonteach = None
+
 
 
 	def to_ger_float(self, field):
