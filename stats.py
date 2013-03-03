@@ -31,11 +31,13 @@ Ein einzelnes Datum
 """
 class Field:
 
-	def __init__(self, value, x_pos, y_pos, column=None):
+	def __init__(self, value, x_pos, y_pos, column=None, additional_value=None):
 		self.value = value
 		self.x = x_pos
 		self.y = y_pos
 		self.column = column
+		# ein zusätzlicher Wert, der bei der Validierung nicht einbeezogen wird
+		self.additional_value = additional_value
 
 	def validate(self):
 		if self.column:
