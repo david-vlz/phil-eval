@@ -64,10 +64,19 @@ class Record:
 				return field
 		return None
 
+	def get_field_by_column_name(self, name):
+		for field in self.fields:
+			if field.column.name == name:
+				return field
+		return None
+
 	def get_value(self, column_name):
 		for value, column in self.iter_fields():
 			if column.name == column_name:
 				return value
+
+	def prepare(self):
+		return True;
 
 
 """
@@ -93,7 +102,7 @@ class Table:
 		name_row: Nummer der Kopfzeile mit aussagekräftigen Namen
 			der einzelnen Spalten
 	"""
-	def __init__(self, sheet, validator=None, 
+	def __init__(self, sheet, record_class=None, validator=None, 
 				 index_row=0, name_row=1,
 				 x_offset = None, y_offset = None):
 		if not(x_offset):
@@ -103,6 +112,7 @@ class Table:
 
 		self.columns = []
 		self.records = []
+		self.record_class = record_class or Record
 
 		start_row_number = max(index_row, name_row) + 1
 
@@ -118,8 +128,7 @@ class Table:
 			# Felder anlegen und dem entsprechenden Datensatz übergeben
 			for y in range(start_row_number, y_offset):
 				if x == 0:
-					self.records.append(Record())
-				
+					self.records.append(self.record_class())
 				field = Field(sheet.cell(y,x).value, x, y, col)
 				self.records[y-start_row_number].add_field(field)
 
@@ -140,6 +149,10 @@ class Table:
 				if column.number == number:
 					print 'additional search'
 					return column
+
+	def prepare_all(self):
+		for record in self.records:
+			record.prepare()
 
 
 
