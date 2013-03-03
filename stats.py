@@ -49,10 +49,6 @@ class Record:
 	def __init__(self, fields=None):
 		self.fields = fields or []
 
-	def __iter__(self):
-		for field in self.fields:
-			yield (field.column.name, field.value)
-
 	def add_field(self, field):
 		self.fields.append(field)
 
