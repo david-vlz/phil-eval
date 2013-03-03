@@ -23,8 +23,10 @@ class Column:
 	def validate(self, value):
 		if self.validator:
 			return self.validator.validate(self.name, value)
-		else:
-			return None
+
+	def get_allowed_values(self):
+		if self.validator:
+			return self.validator.get_value_space(self.name)
 
 """
 Ein einzelnes Datum
@@ -145,8 +147,12 @@ class Table:
 		else:
 			for column in self.columns:
 				if column.number == number:
-					print 'additional search'
 					return column
+
+	def get_column_by_name(self, name):
+		for column in self.columns:
+			if column.name == name:
+				return column
 
 	def prepare_all(self):
 		for record in self.records:
