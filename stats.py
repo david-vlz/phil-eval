@@ -170,6 +170,15 @@ class Table:
 			result[value] = result.get(value, 0) + 1
 		return result
 
+	def get_amounts_as_dataset(self, column_name, record_base=None):
+		tuples = []
+		amounts = self.get_amounts(column_name, record_base)
+		for descriptor in amounts.keys():
+			tuples.append( (descriptor, ((0, amounts[descriptor]), ) ) )
+		return tuple(tuples)
+		
+
+
 
 
 

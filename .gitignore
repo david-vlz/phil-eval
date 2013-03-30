@@ -41,3 +41,4 @@ data.xls
 *.sublime*
 mappings.py
 .~lock.*
+*.png
