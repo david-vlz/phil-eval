@@ -9,12 +9,6 @@ width, height = (1000, 700)
 
 bar_options = {
     'legend': {'hide': True },
-    'background': {'color': '#2dbcb0'},
-    'padding': {
-		'left': 50,
-		'right': 50,
-		'bottom': 0,
-	},
 	'colorScheme': {
 		'name': 'gradient',
 		'args': {
@@ -22,19 +16,21 @@ bar_options = {
 		},
 	},
 	'background': {
+		'baseColor': '#f5f5f5'
 		# 'chartColor': '#ffeeff',
-		'baseColor': '#ffffff'
 		# 'lineColor': '#444444'
 	},
 	'padding': {
-		'left': 0,
-		'bottom': 0,
+		'left': 50,
+		'right': 60,
+		'top': 50,
+		'bottom': 50,
 	},
 }
 
 def _to_bar_chart(amounts, label):
 	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
-	options['axis'] = {
+	bar_options['axis'] = {
 		'x': {
 			'ticks': [dict(v=i, label=l[0]) for i, l in enumerate(amounts)],
 			'label': 'Optionen',
@@ -46,7 +42,7 @@ def _to_bar_chart(amounts, label):
 			'label': 'Nennungen absolut'
 		}
 	}
-	options['title'] = label
+	bar_options['title'] = label
 	chart = pycha.bar.VerticalBarChart(surface, bar_options)
 	chart.addDataset(_to_dataset(amounts, label))
 	chart.render()
