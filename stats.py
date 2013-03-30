@@ -158,6 +158,19 @@ class Table:
 		for record in self.records:
 			record.prepare()
 
+	def get_amounts(self, column_name, record_base=None):
+		result = {}
+		if not(record_base):
+			record_base = self.records
+		values = self.get_column_by_name(column_name).get_allowed_values()
+		for record in record_base:
+			value = record.get_value(column_name)
+			if (type(values) == list) and not(value in values):
+				value = 'Other'
+			result[value] = result.get(value, 0) + 1
+		return result
+
+
 
 
 invalids = []
