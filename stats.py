@@ -2,20 +2,23 @@
 # coding: utf-8
 
 from xlrd import *
+from validate import Validator
 
 """
-Eine einzelne Tabellenzeile
+Eine einzelne Tabellenspalte
 
 coln: die Zeilennummer im Excel sheet
 id: die interne id der Spalte, wenn vorhanden
+parent: die Tabelle, der die Spalte angehört
 name: der Klarname der Spalte, wenn vorhanden
 valid_values: eine Liste mit erlaubten Werten
 """
 class Column:
 
-	def __init__(self, number, id, name="", validator=None):
+	def __init__(self, number, id, parent, name="", validator=None):
 		self.number = number
 		self.id = id
+		self.parent = parent
 		self.name = name
 		if validator:
 			self.validator = validator
@@ -27,6 +30,7 @@ class Column:
 	def get_allowed_values(self):
 		if self.validator:
 			return self.validator.get_value_space(self.name)
+
 
 """
 Ein einzelnes Datum
@@ -44,6 +48,14 @@ class Field:
 	def validate(self):
 		if self.column:
 			return self.column.validate(self.value)
+
+	def check(self):
+		if not self.validate():
+			print 'Warnung, Feld nicht valide: '
+			print "\tx:", self.x, "\ty: ", self.y
+			print "\t", self.column.name, ": ", repr(self.value)
+			if self.additional_value:
+				print "\tAdditional value: ", repr(self.additional_value)
 
 
 class Record:
@@ -75,8 +87,17 @@ class Record:
 			if column.name == column_name:
 				return value
 
-	def prepare(self):
-		return True;
+	def maps(self, column_name, value):
+		val = self.get_value(column_name)
+		if val and (val == value):
+			return True
+
+	def check(self):
+		for field in self.fields:
+			field.check()
+
+	def get_columns(self):
+		return [column for v, column in self.iter_fields()]
 
 
 """
@@ -92,7 +113,9 @@ class Table:
 	Datensätze behandelt.
 
 	Argumente:
-		sheet: Ein xlrd.sheet Objekt, das die eigentliche Tabelle enthält
+		base: Entweder ein xlrd.sheet Objekt, das die Tabelle enthält
+			oder eine Liste von Records, die eine Untermenge eines bereits
+			bestehenden Tables enthalten
 		x_offset = Anzahl der zu betrachtenden Spalten, entspricht der
 			Anzahl der Felder in der ersten Zeile, wenn nicht gesetzt
 		y_offset = Anzahl der zu betrachtenden Zeilen, entspricht der
@@ -102,35 +125,42 @@ class Table:
 		name_row: Nummer der Kopfzeile mit aussagekräftigen Namen
 			der einzelnen Spalten
 	"""
-	def __init__(self, sheet, record_class=None, validator=None, 
+	def __init__(self, base, record_class=None, validator=None, 
 				 index_row=0, name_row=1,
 				 x_offset = None, y_offset = None):
-		if not(x_offset):
-			x_offset = len(sheet.row(index_row))
-		if not(y_offset):
-			y_offset = len(sheet.col(index_row))
-
+		
 		self.columns = []
 		self.records = []
 		self.record_class = record_class or Record
+		self.validator = validator or Validator()
 
-		start_row_number = max(index_row, name_row) + 1
+		if isinstance(base, sheet.Sheet):
+			if not(x_offset):
+				x_offset = len(base.row(index_row))
+			if not(y_offset):
+				y_offset = len(base.col(index_row))
 
-		col_name = None
-		for x in range(0, x_offset):
-			# Neue Spalten anlegen
-			col_id = _normalize_value(sheet.cell(index_row, x))
-			if (name_row):
-				col_name = _normalize_value(sheet.cell(name_row, x))
-			col = Column(x, col_id, (col_name or ""), validator)
-			self.columns.append(col);
+			start_row_number = max(index_row, name_row) + 1
 
-			# Felder anlegen und dem entsprechenden Datensatz übergeben
-			for y in range(start_row_number, y_offset):
-				if x == 0:
-					self.records.append(self.record_class())
-				field = Field(sheet.cell(y,x).value, x, y, col)
-				self.records[y-start_row_number].add_field(field)
+			col_name = None
+			for x in range(0, x_offset):
+				# Neue Spalten anlegen
+				col_id = _normalize_value(base.cell(index_row, x))
+				if (name_row):
+					col_name = _normalize_value(base.cell(name_row, x))
+				col = Column(x, col_id, self, (col_name or ""), validator)
+				self.columns.append(col);
+
+				# Felder anlegen und dem entsprechenden Datensatz übergeben
+				for y in range(start_row_number, y_offset):
+					if x == 0:
+						self.records.append(self.record_class())
+					field = Field(base.cell(y,x).value, x, y, col)
+					self.records[y-start_row_number].add_field(field)
+
+		elif isinstance(base, list) and all([issubclass(x.__class__, Record) for x in base]):
+			self.records = base
+			self.columns = [c for c in base[0].get_columns()]
 
 	def get_invalids_by_column(self, col_nr):
 		invalids = []
@@ -158,15 +188,20 @@ class Table:
 		for record in self.records:
 			record.prepare()
 
+	def check(self):
+		for record in self.records:
+			record.check()
+
 	def get_amounts(self, column_name, record_base=None):
 		result = {}
 		if not(record_base):
 			record_base = self.records
 		values = self.get_column_by_name(column_name).get_allowed_values()
-		for record in record_base:
-			value = record.get_value(column_name)
+		for value in self.get_values(column_name, record_base):
 			if (type(values) == list) and not(value in values):
-				value = 'Other'
+				value = 'Sonstiges / Ungültig'
+			elif (callable(values)) and not(values(value)):
+				value = 'Sonstiges / Ungültig'
 			result[value] = result.get(value, 0) + 1
 		return result
 
@@ -175,13 +210,28 @@ class Table:
 		tuples = [ (key, amounts[key]) for i, key in enumerate(amounts)]
 		return tuple(tuples)
 
+	def get_values(self, column_name, record_base=None):
+		if not(record_base):
+			record_base = self.records
+		return [r.get_value(column_name) for r in record_base]
 
+	def average(self, column_name, record_base=None):
+		if not(record_base):
+			record_base = self.records
+		fn = self.get_column_by_name(column_name).get_allowed_values()
+		if (fn == self.validator.is_float) or (fn == self.validator.is_integer):
+			values = self.get_values(column_name, record_base)
+			valid_values = [v for v in values if v != '']
+			return {
+				'average': sum(valid_values) / len(valid_values),
+				'invalid': len(values) - len(valid_values),
+				'valid': len(valid_values)
+			}
 
-invalids = []
-def get_invalids(row_nr):
-	for val, y, x in invalids:
-		if x == row_nr:
-			print repr(val), y, x
+	def subtable(self, column_name, value):
+		records = [r for r in self.records if r.maps(column_name, value)]
+		return self.__class__(records)
+
 
 
 
