@@ -222,15 +222,17 @@ class Table:
 		if (fn == self.validator.is_float) or (fn == self.validator.is_integer):
 			values = self.get_values(column_name, record_base)
 			valid_values = [v for v in values if v != '']
-			return {
-				'average': sum(valid_values) / len(valid_values),
-				'invalid': len(values) - len(valid_values),
-				'valid': len(valid_values)
-			}
+			if len(valid_values) != 0:
+				return {
+					'average': sum(valid_values) / len(valid_values),
+					'invalid': len(values) - len(valid_values),
+					'valid': len(valid_values)
+				}
 
 	def subtable(self, column_name, value):
 		records = [r for r in self.records if r.maps(column_name, value)]
-		return self.__class__(records)
+		if records:
+			return self.__class__(records, self.record_class, self.validator)
 
 
 

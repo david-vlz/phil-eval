@@ -7,97 +7,48 @@ import copy
 import string
 from PIL import Image
 
-# Maße der Cairo-Oberfläche
-width, height = (1000, 700)
+class PhilDisplay:
 
-bar_options = {
-    'legend': {'hide': True },
-	'colorScheme': {
-		'name': 'rainbow',
-		'args': {
-			'initialColor': 'blue',
-		},
-	},
-	'background': {
-		'baseColor': '#f5f5f5'
-		# 'chartColor': '#ffeeff',
-		# 'lineColor': '#444444'
-	},
-	'padding': {
-		'left': 50,
-		'right': 60,
-		'top': 50,
-		'bottom': 50,
-	},
-	'yvals': {
-		'show': True
-	}
-}
+	def __init__(self, label, filename=None, height=None, width=None):
+		self.label = label
+		self.filename = filename or label + ".png"
+		self.datasets = []
+		
+		self.height = height or 700
+		self.width = width or 1000
+		self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
 
-pie_options = copy.deepcopy(bar_options)
+	def prepare_chart(self, chartType, dataset=None, options=None):
+		if chartType=='bar':
+			self.chartType = pycha.bar.VerticalBarChart
+		elif chartType=='pie':
+			self.chartType = pycha.pie.PieChart
 
-def _to_bar_chart(amounts, label):
-	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
-	bar_options['axis'] = {
-		'x': {
-			'ticks': [dict(v=i, label=l[0]) for i, l in enumerate(amounts)],
-			'label': None,
-			'rotate': 85,
-			'interval': 0
-		},
-	    'y': {
-			'ticks': [dict(v=x*10, label=x*10) for x in range(0, 30)],
-			'rotate': 0,
-			'label': 'Nennungen absolut'
-		}
-	}
-	bar_options['title'] = None
-	chart = pycha.bar.VerticalBarChart(surface, bar_options)
-	chart.addDataset(_to_bar_dataset(amounts, label))
-	chart.render()
-	return surface
+		self.options = options or {}
+		self.chart = self.chartType(self.surface, self.options)
+		if dataset:
+			self.add_dataset(dataset)
 
-def _to_bar_dataset(amounts, label):
-	return ( (label, [(i, l[1]) for i, l in enumerate(amounts)]), )
+	def _prepare_data(self, amounts, datalabel=None):
+		datalabel = (datalabel or self.label)
+		if self.chartType == pycha.bar.VerticalBarChart:
+			return ((datalabel, [(i, l[1]) for i, l in enumerate(amounts)]),)
+		elif self.chartType == pycha.pie.PieChart:
+			return [(amount[0], [[0, amount[1]]]) for amount in amounts]
 
-def save_as_bar_chart(amounts, filename):
-	surface = _to_bar_chart(amounts, filename)
-	surface.write_to_png(filename + '.png')
+	def add_dataset(self, dataset, datalabel=None):
+		self.datasets.append(dataset)
+		self.chart.addDataset(self._prepare_data(self.datasets[-1], datalabel))
 
-def show_as_bar_chart(amounts, filename):
-	save_as_bar_chart(amounts, filename)
-	im = Image.open(filename + '.png')
-	im.show()
+	def finish(self):
+		self.chart.render()
+		self.surface.write_to_png(self.filename)
+
+	def show(self):
+		im = Image.open(self.filename)
+		im.show()
+
+		
 
 
-def _to_pie_chart(amounts, label):
-	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
-	pie_options['axis'] = {
-		'x': {
-			'ticks': [dict(v=i, label=d[0]) for i, d in enumerate(amounts)],
-			'showLines': True
-		}
-	}
-	chart = pycha.pie.PieChart(surface, pie_options)
-	chart.addDataset(_to_pie_dataset(amounts))
-	chart.render()
-	return surface
 
-def _to_pie_dataset(amounts):
-	return [(amount[0], [[0, amount[1]]]) for amount in amounts]
-
-def save_as_pie_chart(amounts, filename):
-	surface = _to_pie_chart(amounts, filename)
-	surface.write_to_png(filename + '.png')
-
-def show_as_pie_chart(amounts, filename):
-	save_as_pie_chart(amounts, filename)
-	im = Image.open(filename + '.png')
-	im.show()
-
-def linebreaks(ztring, n=3):
-	words = string.split(ztring, ' ')
-	for i in range(1, len(words)):
-		if i % n == 0:
-			words[i] = "\n" + words[i]
-	return string.join(words)
