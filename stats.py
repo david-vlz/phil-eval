@@ -133,6 +133,7 @@ class Table:
 		self.records = []
 		self.record_class = record_class or Record
 		self.validator = validator or Validator()
+		self.label = ''
 
 		if isinstance(base, sheet.Sheet):
 			if not(x_offset):

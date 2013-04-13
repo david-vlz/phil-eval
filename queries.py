@@ -139,13 +139,16 @@ workload_options =  {
 			'right': 25
 		}
 	},
+	'colorScheme': {
+		'name': 'gradient'
+	},
 	'axis': {
 		'x': {
 			'label': None,
 			'rotate': 0,
 			'interval': 0,
 			'ticks' : [{'v': 0, 'label': 'Zeit Vorbereitung'},
-					   {'v': 1, 'label': 'Zeit Nachereitung'},
+					   {'v': 1, 'label': 'Zeit Nachbereitung'},
 					   {'v': 2, 'label': 'Zeit Lesen'} ]
 		},
 	    'y': {
@@ -156,11 +159,11 @@ workload_options =  {
 	}
 }
 
-def workload_averages_query(intensives_table, averages_table):
-	d = prepare_amounts_query('Arbeitszeiten', None, workload_options)
+sem_intensive_cols = [u'Zeit Vorbereitung Intensiv', u'Zeit Nachbereitung Intensiv', u'Zeit Lesen Intensiv']
+sem_average_cols = [u'Zeit Vorbereitung Durchschnittlich', u'Zeit Nachbereitung Durchschnittlich', u'Zeit Lesen Durchschnittlich']
 
-	sem_intensive_cols = [u'Zeit Vorbereitung Intensiv', u'Zeit Nachbereitung Intensiv', u'Zeit Lesen Intensiv']
-	sem_average_cols = [u'Zeit Vorbereitung Durchschnittlich', u'Zeit Nachbereitung Durchschnittlich', u'Zeit Lesen Durchschnittlich']
+def general_workload_averages_query(intensives_table, averages_table):
+	d = prepare_amounts_query('Arbeitszeiten', None, workload_options)
 
 	tups_intensive = []
 	for col in sem_intensive_cols:
@@ -176,12 +179,79 @@ def workload_averages_query(intensives_table, averages_table):
 	d.finish()
 	return d
 
+def specific_workload_averages_query(cols, *tables):
+	d = prepare_amounts_query('Arbeitszeiten', None, workload_options)
+
+	for table in tables:
+		tups = []
+		for col in cols:
+			tups.append((col, table.average(col)['average']))
+		tups = tuple(tups)
+		d.add_dataset(tups, table.label)
+
+	d.finish()
+	return d
+
 # Einfache Arbeitszeiten gegeneinandergehalten
-# d = workload_averages_query(t, t)
+# d = general_workload_averages_query(t, t)
 # d.show()
 
-#Arbeitszeitendurchschnitte nach angestrebten CP Filtern
-u = t.subtable(u'Leistungspunkte Intensiv', 4)
-v = t.subtable(u'Leistungspunkte Durchschnittlich', 4)
-d = workload_averages_query(u, v)
-d.show()
+# Arbeitszeitendurchschnitte nach angestrebten CP Filtern
+# u = t.subtable(u'Leistungspunkte Intensiv', 4)
+# v = t.subtable(u'Leistungspunkte Durchschnittlich', 4)
+# d = general_workload_averages_query(u, v)
+# d.show()
+
+
+# Arbeitszeitendurchschnitte nach CP in einer Grafik
+
+# für intensive Seminare
+# t4cp = t.subtable(u'Leistungspunkte Intensiv', 4)
+# t4cp.label = "4 CP"
+# t3cp = t.subtable(u'Leistungspunkte Intensiv', 3)
+# t3cp.label = "3 CP"
+# t2cp = t.subtable(u'Leistungspunkte Intensiv', 2)
+# t2cp.label = "2 CP"
+# t1cp = t.subtable(u'Leistungspunkte Intensiv', 1)
+# t1cp.label = "1 CP"
+# d = specific_workload_averages_query(sem_intensive_cols, t4cp, t3cp, t2cp, t1cp)
+# d.show()
+
+#für Seminare mit durchsniitlicher Arbeitszeit
+# t4cp = t.subtable(u'Leistungspunkte Durchschnittlich', 4)
+# t4cp.label = "4 CP"
+# t3cp = t.subtable(u'Leistungspunkte Durchschnittlich', 3)
+# t3cp.label = "3 CP"
+# t2cp = t.subtable(u'Leistungspunkte Durchschnittlich', 2)
+# t2cp.label = "2 CP"
+# t1cp = t.subtable(u'Leistungspunkte Durchschnittlich', 1)
+# t1cp.label = "1 CP"
+# d = specific_workload_averages_query(sem_average_cols, t4cp, t3cp, t2cp, t1cp)
+# d.show()
+
+
+# Arbeitszeitendurchschnitte nach Art des Seminars in einer Grafik
+
+# für intensive Seminare
+# tHauptseminar = t.subtable(u'Art Veranstaltung Intensiv', u'Hauptseminar')
+# tHauptseminar.label = u'Hauptseminar'
+# tProseminar = t.subtable(u'Art Veranstaltung Intensiv', u'Proseminar')
+# tProseminar.label = u'Proseminar'
+# tVorlesung = t.subtable(u'Art Veranstaltung Intensiv', u'Vorlesung')
+# tVorlesung.label = u'Vorlesung'
+# d = specific_workload_averages_query(sem_intensive_cols, tHauptseminar, tProseminar, tVorlesung)
+# d.show()
+
+# für durchschnittliche Seminare
+# tHauptseminar = t.subtable(u'Art Veranstaltung Durchschnittlich', u'Hauptseminar')
+# tHauptseminar.label = u'Hauptseminar'
+# tProseminar = t.subtable(u'Art Veranstaltung Durchschnittlich', u'Proseminar')
+# tProseminar.label = u'Proseminar'
+# tVorlesung = t.subtable(u'Art Veranstaltung Durchschnittlich', u'Vorlesung')
+# tVorlesung.label = u'Vorlesung'
+# d = specific_workload_averages_query(sem_average_cols, tHauptseminar, tProseminar, tVorlesung)
+# d.show()
+
+
+
+
