@@ -169,6 +169,11 @@ class Table:
 			self.records = base
 			self.columns = [c for c in base[0].get_columns()]
 
+	def add_records(self, records):
+		for record in records:
+			if record not in self.records:
+				self.records.append(record)
+
 	def get_invalids_by_column(self, col_nr):
 		invalids = []
 		column = self.get_column_by_number(col_nr)
@@ -247,6 +252,16 @@ class Table:
 
 	def subtable(self, column_name, value):
 		records = [r for r in self.records if r.maps(column_name, value)]
+		if records:
+			return self.__class__(records, self.record_class, self.validator)
+
+	def complex_subtable(self, *conditions):
+		records = []
+		for record in self.records:
+			for condition in conditions:
+				if record.maps(condition[0], condition[1]):
+					records.append(record)
+					break
 		if records:
 			return self.__class__(records, self.record_class, self.validator)
 
