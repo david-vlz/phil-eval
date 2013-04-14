@@ -87,6 +87,11 @@ class Record:
 			if column.name == column_name:
 				return value
 
+	def get_additional_value(self, column_name):
+		for field in self.fields:
+			if (field.column.name == column_name) and (field.additional_value):
+				return field.additional_value
+
 	def maps(self, column_name, value):
 		val = self.get_value(column_name)
 		if val and (val == value):
@@ -134,6 +139,7 @@ class Table:
 		self.record_class = record_class or Record
 		self.validator = validator or Validator()
 		self.label = ''
+		self.invalid_output_str = 'N/A'
 
 		if isinstance(base, sheet.Sheet):
 			if not(x_offset):
@@ -200,9 +206,9 @@ class Table:
 		values = self.get_column_by_name(column_name).get_allowed_values()
 		for value in self.get_values(column_name, record_base):
 			if (type(values) == list) and not(value in values):
-				value = 'Sonstiges / Ungültig'
+				value = self.invalid_output_str
 			elif (callable(values)) and not(values(value)):
-				value = 'Sonstiges / Ungültig'
+				value = self.invalid_output_str
 			result[value] = result.get(value, 0) + 1
 		return result
 
@@ -216,13 +222,22 @@ class Table:
 			record_base = self.records
 		return [r.get_value(column_name) for r in record_base]
 
+	def get_additional_values(self, column_name, record_base=None):
+		if not(record_base):
+			record_base = self.records
+		return [r.get_additional_value(column_name) for r in record_base]
+
+
 	def average(self, column_name, record_base=None):
 		if not(record_base):
 			record_base = self.records
 		fn = self.get_column_by_name(column_name).get_allowed_values()
-		if (fn == self.validator.is_float) or (fn == self.validator.is_integer) or (fn == self.validator.get_value_space('Skala')):
+		if (fn == self.validator.is_float) \
+		or (fn == self.validator.is_integer) \
+		or (fn == self.validator.get_value_space('Skala')) \
+		or (fn == self.validator.get_value_space('Noten')):
 			values = self.get_values(column_name, record_base)
-			valid_values = [v for v in values if v != '']
+			valid_values = [v for v in values if ((v != '') and (v != u'Keine Angabe m\xf6glich'))]
 			if valid_values and (len(valid_values) != 0):
 				return {
 					'average': sum(valid_values) / len(valid_values),

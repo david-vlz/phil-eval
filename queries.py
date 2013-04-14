@@ -126,6 +126,11 @@ def averagesQuery(averages):
 		print 'Durchschnitt: ', averages['average']
 		print 'gesamt:', averages['valid'] + averages['invalid'], u'(ungültig:', averages['invalid'], "\b)"
 
+def prepare_pie(label, data, height=None, width=None):
+	d = display.PhilDisplay(label, None, (height or 600), (width or 500))
+	d.prepare_chart('pie', data, options)
+	return d
+
 
 
 
@@ -381,27 +386,37 @@ tables = {
 
 # (11-13) Lehrpraxis
 
-tLehre = t.subtable(u'Lehrpraxis Seminare besucht', 'Ja')
-tups = (('Nutzen Seminare allgemein', t.average(u'Nutzen')['average']),
-		('Nutzen Seminare zur Lehrpraxis', tLehre.average(u'Nutzen Lehrpraxis Seminare')['average']) )
+# tLehre = t.subtable(u'Lehrpraxis Seminare besucht', 'Ja')
+# tups = (('Nutzen Seminare allgemein', t.average(u'Nutzen')['average']),
+# 		('Nutzen Seminare zur Lehrpraxis', tLehre.average(u'Nutzen Lehrpraxis Seminare')['average']) )
 
-teach_options = {
-	'legend': {
-		'hide': True
-	},
-	'axis': {
-		'x': {
-			'ticks': [dict(v=i, label=t[0]) for i, t in enumerate(tups)]
-		},
-		'y': {
-			'label': 'Durchschnittliche Einschätzung des praktischen Nutzens auf einer Skala von 1 (gering) bis 6 (hoch)'
-		}
-	}
-}
-teach_options = dict_merge(job_options, teach_options)
-d = prepare_amounts_query('Lehrpraxis und Seminare', tups, teach_options)
-d.finish()
-d.show()
+# teacher_options = {
+# 	'legend': {
+# 		'hide': True
+# 	},
+# 	'axis': {
+# 		'x': {
+# 			'ticks': [dict(v=i, label=t[0]) for i, t in enumerate(tups)]
+# 		},
+# 		'y': {
+# 			'label': 'Durchschnittliche Einschätzung des praktischen Nutzens auf einer Skala von 1 (gering) bis 6 (hoch)'
+# 		}
+# 	}
+# }
+# teacher_options = dict_merge(job_options, teacher_options)
+# d = prepare_amounts_query('Lehrpraxis und Seminare', tups, teacher_options)
+# d.finish()
+# d.show()
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -410,4 +425,154 @@ d.show()
 
 # LEHR- UND PRÜFUNGSFORMEN
 
+teach_options =  {
+	'legend': {
+		'hide': False,
+		'position': {
+			'right': 25
+		}
+	},
+	'colorScheme': {
+		'name': 'gradient'
+	},
+	'axis': {
+		'x': {
+			'label': None,
+			'rotate': 0,
+			'interval': 0,
+			'ticks' : None
+		},
+	    'y': {
+			'ticks': [dict(v=x, label=x) for x in range(0, 6)],
+			'range': [0,7],
+			'rotate': 0,
+			'label': u'Durschnittliche Einschätzung des nachhaltigen Lernerfolgs auf einer Skala von 1 (gering) bis 6 (hoch)'
+		}
+	}
+}
+
 # (13) Einschätzung des nachhaltigen Lernerfolgs
+
+# cols = [u'Referat', u'Mündliche Prüfung', u'Essay', u'Klausur', u'Hausarbeit']
+# teach_options['axis']['x']['ticks'] = [dict(v=i, label=l) for i, l in enumerate(cols)]
+
+# tups = []
+# for col in cols:
+# 	tups.append((col, t.average(col)['average']))
+# tups = tuple(tups)
+
+# d = prepare_amounts_query(u'Einschaetzung Nachhaltiger Lernerfolg', tups, teach_options)
+# d.finish()
+# d.show()
+
+
+
+# (14) Vorbereitung auf Prüfungsanforderungen
+
+# averages = t.average(u'Gut vorbereitet?')
+# averagesQuery(averages)
+
+
+# (15) Lesekreis teilgenommen
+# tups = t.get_amounts_as_tuples(u'Lesekreis teilgenommen?')
+# d = display.PhilDisplay('Teilnahme Lesekreis', None, 600, 500)
+# d.prepare_chart('pie', tups, options)
+# d.finish()
+# d.show()
+
+# (16) Lesekreis mögliche Teilnahme
+# col = u'Lesekreis Leistungspunkte?'
+
+# Alle Befragten
+# tups = t.get_amounts_as_tuples(col)
+# d = prepare_pie('Zukuenftige Teilnahme Lesekreis', tups, 700, 1200)
+# d.finish()
+# d.show()
+
+# Befragte, die schon einmal an einem Lesekreis teilgenommen haben
+# tExperienced = t.subtable(u'Lesekreis teilgenommen?', 'Ja')
+# tups = tExperienced.get_amounts_as_tuples(col)
+# d = prepare_pie('Zukuenftige Teilnahme Lesekreis - Bereits teilgenommen', tups, 700, 1200)
+# d.finish()
+# d.show()
+
+# Befragte, die noch nie an einem Lesekreis teilgenommen haben
+# tInexperienced = t.subtable(u'Lesekreis teilgenommen?', 'Nein')
+# tups = tInexperienced.get_amounts_as_tuples(col)
+# d = prepare_pie('Zukuenftige Teilnahme Lesekreis - Nicht teilgenommen', tups, 700, 1200)
+# d.finish()
+# d.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# BERATUNG
+
+beratung_options =  {
+	'legend': {
+		'hide': True,
+		'position': {
+			'right': 25
+		}
+	},
+	'colorScheme': {
+		'name': 'gradient'
+	},
+	'axis': {
+		'x': {
+			'label': None,
+			'rotate': 0,
+			'interval': 0,
+			'ticks' : None
+		},
+	    'y': {
+			'ticks': [dict(v=x, label=x) for x in range(0, 6)],
+			'range': [0,7],
+			'rotate': 0,
+			'label': u'Durchschnittliche Qualität der Beratung in Schulnoten von 1 bis 6'
+		}
+	}
+}
+
+# (19) Einschätzung der Qualität
+
+# cols = [u'Modulhandbuch', u'Seminar', u'Obligatorische', u'Fachschaft', u'FAQ-Seiten']
+# beratung_options['axis']['x']['ticks'] = [dict(v=i, label=l) for i, l in enumerate(cols)]
+# tups = []
+# for col in cols:
+# 	tups.append((col, t.average(col)['average']))
+# tups = tuple(tups)
+# d = prepare_amounts_query('Einschaetzung der Beratungsqualitaet', tups, beratung_options)
+# d.finish()
+# d.show()
+
+
+# (20) Teilnahme obligatorische Beratung
+
+# tups = t.get_amounts_as_tuples(u'Obligatorische teilgenommen?')
+# d = prepare_pie('Teilnahme oblogatorische Erstsemesterberatung', tups)
+# d.finish()
+# d.show()
+
+# (21) Gründe für das Fehlen bei der obligatorischen Erstemesterberatung
+
+tManc = t.subtable(u'Obligatorische teilgenommen?', 'Nein')
+# tups = tManc.get_amounts_as_tuples(u'Gründe Fehlen Obligatorische')
+# d = prepare_pie('Gruende Fehlen Obligatorische', tups, 700, 800)
+# d.finish()
+# d.show()
+
+for reason in tManc.get_additional_values(u'Gründe Fehlen Obligatorische'):
+	if reason:
+		print reason
