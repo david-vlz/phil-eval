@@ -46,6 +46,27 @@ for k, v in mappings.items():
 t = phil_stats.PhilTable(main_sheet, phil_stats.PhilRecord, validator)
 t.prepare_all()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# HAUPTFUNKTIONEN UND OPTIONEN FÜR DIE ABFRAGE
+
 options = {
 	'legend': {'hide': True },
 	'colorScheme': {
@@ -106,6 +127,19 @@ def averagesQuery(averages):
 		print 'gesamt:', averages['valid'] + averages['invalid'], u'(ungültig:', averages['invalid'], "\b)"
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ANGABEN ZUR PERSON
 
 # Studiengänge abfragen
@@ -127,6 +161,17 @@ def averagesQuery(averages):
 # 	else:
 # 		print 'N/A'
 # 	print ''
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -255,3 +300,114 @@ def specific_workload_averages_query(cols, *tables):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+# BERUFSVORBEREITUNG
+
+job_options =  {
+	'legend': {
+		'hide': False,
+		'position': {
+			'right': 25
+		}
+	},
+	'colorScheme': {
+		'name': 'gradient'
+	},
+	'axis': {
+		'x': {
+			'label': None,
+			'rotate': 0,
+			'interval': 0,
+			'ticks' : None
+		},
+	    'y': {
+			'ticks': [dict(v=x, label=x) for x in range(0, 6)],
+			'range': [0,7],
+			'rotate': 0,
+			'label': 'Durschnittliche Zufriedenheit auf einer Skala von 1-6'
+		}
+	}
+}
+
+# Allgemein: Berufsziel
+# tups = t.get_amounts_as_tuples(u'Berufliches Ziel')
+# d = prepare_amounts_query(u'Berufliches Ziel', tups)
+# d.finish()
+# d.show()
+
+tables = {
+	'Alle Studierende': t,
+	'Berufsziel Lehramt': t.subtable(u'Berufliches Ziel', u'Lehrerberuf'),
+	'Berufsziel Akademisch': t.subtable(u'Berufliches Ziel', u'akademische Karriere')
+}
+
+
+# (8-9) Allgemeine Einschätzung
+
+# cols = [u'Zufriedenheit allgemein', u'Zufriedenheit phil. Sem.']
+# job_options['axis']['x']['ticks'] = [dict(v=i, label=v) for i, v in enumerate(cols)]
+# d = prepare_amounts_query('Berufsvorbereitung', None, job_options)
+# for i, key in enumerate(tables):
+# 	table = tables[key]
+# 	tups = []
+# 	for col in cols:
+# 		tups.append((col, table.average(col)['average']))
+# 	tups = tuple(tups)
+# 	d.add_dataset(tups, key)
+# d.finish()
+# d.show()
+
+
+# (10) Soll das phil Sem mehr tun?
+
+# for i, key in enumerate(tables):
+# 	table = tables[key]
+# 	tups = table.get_amounts_as_tuples(u'Mehr tun?')
+# 	d = display.PhilDisplay('Mehr tun - ' + key, None, 600, 500)
+# 	d.prepare_chart('pie', tups, options)
+# 	d.finish()
+# 	d.show()
+
+
+# (11-13) Lehrpraxis
+
+tLehre = t.subtable(u'Lehrpraxis Seminare besucht', 'Ja')
+tups = (('Nutzen Seminare allgemein', t.average(u'Nutzen')['average']),
+		('Nutzen Seminare zur Lehrpraxis', tLehre.average(u'Nutzen Lehrpraxis Seminare')['average']) )
+
+teach_options = {
+	'legend': {
+		'hide': True
+	},
+	'axis': {
+		'x': {
+			'ticks': [dict(v=i, label=t[0]) for i, t in enumerate(tups)]
+		},
+		'y': {
+			'label': 'Durchschnittliche Einschätzung des praktischen Nutzens auf einer Skala von 1 (gering) bis 6 (hoch)'
+		}
+	}
+}
+teach_options = dict_merge(job_options, teach_options)
+d = prepare_amounts_query('Lehrpraxis und Seminare', tups, teach_options)
+d.finish()
+d.show()
+
+
+
+
+
+
+# LEHR- UND PRÜFUNGSFORMEN
+
+# (13) Einschätzung des nachhaltigen Lernerfolgs

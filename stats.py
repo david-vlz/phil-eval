@@ -220,10 +220,10 @@ class Table:
 		if not(record_base):
 			record_base = self.records
 		fn = self.get_column_by_name(column_name).get_allowed_values()
-		if (fn == self.validator.is_float) or (fn == self.validator.is_integer):
+		if (fn == self.validator.is_float) or (fn == self.validator.is_integer) or (fn == self.validator.get_value_space('Skala')):
 			values = self.get_values(column_name, record_base)
 			valid_values = [v for v in values if v != '']
-			if len(valid_values) != 0:
+			if valid_values and (len(valid_values) != 0):
 				return {
 					'average': sum(valid_values) / len(valid_values),
 					'invalid': len(values) - len(valid_values),
