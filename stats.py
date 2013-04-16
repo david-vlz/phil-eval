@@ -243,11 +243,17 @@ class Table:
 		or (fn == self.validator.get_value_space('Noten')):
 			values = self.get_values(column_name, record_base)
 			valid_values = [v for v in values if ((v != '') and (v != u'Keine Angabe m\xf6glich'))]
-			if valid_values and (len(valid_values) != 0):
+			valid_values = sorted(valid_values, key=int)
+			length = len(valid_values)
+			offset = int(round((length * 0.08)))
+			shortened_values = valid_values[offset:(length-offset)]
+			if shortened_values and (len(shortened_values) != 0):
 				return {
-					'average': sum(valid_values) / len(valid_values),
+					'average': sum(shortened_values) / len(shortened_values),
 					'invalid': len(values) - len(valid_values),
-					'valid': len(valid_values)
+					'valid': len(valid_values),
+					'shortened': len(valid_values) - len(shortened_values),
+					'offset': offset
 				}
 
 	def subtable(self, column_name, value):
